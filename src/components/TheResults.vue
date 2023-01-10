@@ -13,13 +13,14 @@
       </div>
       <div class="result__text block-white">
         <h5 class="result__text-title">"{{result.descriptionTitle}}"</h5>
-        <p>{{result.description}}</p>
         <div v-if="destructiveProgram(index)">
+          <p>{{result.extended}}</p>
           <template v-for="dopRes in getGroupDopQuestionsVsResults(result.id)">
             <h5>{{dopRes.copingTitle}}  : {{dopRes.rating}} из 5</h5>
             <span>{{dopRes.title}}</span>
           </template>
         </div>
+        <p v-else v-html="result.description"></p>
       </div>
     </div>
   </template>
@@ -104,36 +105,38 @@ export default {
       },
       destructiveGroupsIds: [],
       fromUrl: false,
+      highValue: 20,
     }
   },
 
-  created(){
+  async created(){
     if(!this.user.name) {
       const user = {
         name: this.$route.query.user_name ?? '',
         email: this.$route.query.user_email ?? '',
       }
-      this.setUser(user)
+      await this.setUser(user)
 
       // how we are entered this page
       this.fromUrl = true
     }
-    if(!this.answers.length && this.$route.query.q){
+    if(this.$route.query.q){
       const answersFromUrl = this.$route.query.q
-      this.setAnswersFromArray(answersFromUrl.split('.'))
+      await this.setAnswersFromArray(answersFromUrl.split('.'))
     }
-    if(!this.dopAnswers.length && this.$route.query.qd){
-      this.getDestructiveGroupsIds()
+    await this.getDestructiveGroupsIds()
+    if(this.$route.query.qd){
       const answersFromUrl = this.$route.query.qd
-      this.setDopAnswersFromArray({
+      await this.setDopAnswersFromArray({
         questions: this.activeDopQuestions,
         answers: answersFromUrl.split('.')})
     }
+    if(!this.fromUrl){
+      await this.sendResultsToEmail()
+    }
   },
   mounted() {
-    if(!this.fromUrl){
-      this.sendResultsToEmail()
-    }
+
   },
 
   computed: {
@@ -171,6 +174,7 @@ export default {
     },
     getBarOptions(result){
       return {
+        colors: ['#c5ccff', '#f8a887'],
         labels: [
           result.s + ' из ' + 30
         ],
@@ -195,6 +199,25 @@ export default {
         grid: {
           show: false,
         },
+        // colors: ['#c5ccff', '#f8a887'],
+        colors: [function({ value, seriesIndex, w }) {
+          if (value > 20) {
+            return '#ffc1ab'
+          } else if (value > 12) {
+            return '#c5ccff'
+          } else {
+            return '#beffe3'
+          }
+        }],
+        fill: {
+          type: "gradient",
+          gradient: {
+            shadeIntensity: 0,
+            opacityFrom: 0.8,
+            opacityTo: 0.5,
+            stops: [0, 90, 100]
+          }
+        },
         plotOptions: {
           bar: {
             borderRadius: 15,
@@ -206,24 +229,15 @@ export default {
             dataLabels: {
               position: 'bottom'
             },
-            colors: {
-              ranges: [{
-                from: 0,
-                to: 0,
-                color: '#fff'
-              }],
-              backgroundBarColors: [],
-              backgroundBarOpacity: 1,
-              backgroundBarRadius: 0,
-            },
+
           }
         },
         dataLabels: {
           enabled: true,
           textAnchor: 'start',
           style: {
-            colors: ['#fff'],
-            fontSize: 16,
+            colors: ['000000'],
+            fontSize: 18,
           },
           formatter: function (val, opt) {
             return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val
@@ -259,11 +273,16 @@ export default {
         }
       }
     },
+    valueIsHigh(value){
+      return value > this.highValue
+    },
     getChartSeries(){
-      return [{
+      return [
+          {
         name: 'Показатель',
-        data: this.resultTable.map(r => r.s)
-      }]
+        data: this.resultTable.map(r => r.s),
+      }
+      ]
     },
 
     getGroupDopQuestionsVsResults(groupId){

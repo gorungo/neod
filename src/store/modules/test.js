@@ -1210,6 +1210,7 @@ const actions = {
   },
 
   setAnswersFromArray({state, commit}, answers) {
+    commit('clearAnswers')
     answers.forEach((answer, i) => {
       const question = state.questions[i]
       if(question){
@@ -1225,6 +1226,7 @@ const actions = {
     })
   },
   setDopAnswersFromArray({state, commit}, {questions, answers}) {
+    commit('clearDopAnswers')
     answers.forEach((answer, i) => {
       const question = questions[i]
       if(question){
@@ -1262,6 +1264,8 @@ const mutations = {
   },
   clearAnswers(state) {
     state.answers = []
+  },
+  clearDopAnswers(state) {
     state.dopAnswers = []
   },
 
