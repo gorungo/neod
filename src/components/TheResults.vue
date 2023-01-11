@@ -16,7 +16,7 @@
         <div v-if="destructiveProgram(index)">
           <p>{{result.extended}}</p>
           <template v-for="dopRes in getGroupDopQuestionsVsResults(result.id)">
-            <h5>{{dopRes.copingTitle}}  : {{dopRes.rating}} из 5</h5>
+            <h5>{{dopRes.copingTitle}}: {{dopRes.rating}} из 5</h5>
             <span>{{dopRes.title}}</span>
           </template>
         </div>
@@ -36,13 +36,14 @@
               <h1>{{result.title}} <span  style="color:#aaa;">({{result.s}} из 30)</span></h1>
               <p>{{getTpTitle(result.tp)}}</p>
               <h5>"{{result.descriptionTitle}}"</h5>
-              <p>{{result.description}}</p>
               <div v-if="destructiveProgram(index)">
+                <p>{{result.extended}}</p>
                 <template v-for="dopRes in getGroupDopQuestionsVsResults(result.id)">
                   <h5>{{dopRes.copingTitle}}  : {{dopRes.rating}} из 5</h5>
                   <span>{{dopRes.title}}</span>
                 </template>
               </div>
+              <p v-else>{{result.description}}</p>
             </div>
           </div>
         </template>
@@ -240,7 +241,7 @@ export default {
             fontSize: 18,
           },
           formatter: function (val, opt) {
-            return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val
+            return opt.w.globals.labels[opt.dataPointIndex] + ": " + val
           },
           offsetX: 0,
           dropShadow: {
@@ -251,7 +252,7 @@ export default {
           labels: {
             show: false
           },
-          categories: this.resultTable.map(r => r.title.split('/')[0])
+          categories: this.resultTable.map(r => r.title.split(' /')[0])
         },
         yaxis: {
           labels: {
@@ -372,6 +373,9 @@ export default {
     display: none;
     background: #fff;
     border-radius: 1rem;
+  }
+  .results__chart h2{
+    padding: 2rem 2rem 0;
   }
   .result {
     display: flex;
